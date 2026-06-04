@@ -1,0 +1,5 @@
+Version: 5
+
+Source: https://cmake.org/files/v(\d+\.\d+)/
+Matching-Pattern: @PACKAGE@@STABLE_VERSION@@ARCHIVE_EXT@
+

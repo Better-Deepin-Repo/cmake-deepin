@@ -1,0 +1,8 @@
+Tests:
+ testsuite,
+Restrictions:
+ allow-stderr,
+Depends:
+ cmake,
+ gawk,
+ @builddeps@,

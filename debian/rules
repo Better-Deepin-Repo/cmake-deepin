@@ -1,0 +1,108 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/architecture.mk
+include /usr/share/dpkg/pkg-info.mk
+
+# Do not build with link-time optimization, cf. https://bugs.debian.org/1034873
+export DEB_BUILD_MAINT_OPTIONS := optimize=-lto hardening=+all
+
+export DEB_CXXFLAGS_MAINT_APPEND := $(shell dpkg-buildflags --get CPPFLAGS)
+export DEB_CFLAGS_MAINT_APPEND := $(shell dpkg-buildflags --get CPPFLAGS)
+
+
+BUILD_DATE = $(shell LC_ALL=C date -u "+%B %d, %Y" -d "@$(SOURCE_DATE_EPOCH)")
+
+
+BUILD_FLAGS_FILE = build-flags.cmake
+set_build_flag = echo 'set($(1) $(2) CACHE \
+    $(if $(filter $(2),YES ON TRUE NO OFF FALSE),BOOL,STRING) \
+    $(or $(3),"") FORCE)' >> $(BUILD_FLAGS_FILE)
+verify_build_flag = @grep \
+    --include=CMakeLists.txt --include=*.cmake \
+    --exclude=$(BUILD_FLAGS_FILE) -rqs '\b$(1)\b' . || echo '$(1) flag is obsolete'
+
+$(BUILD_FLAGS_FILE) verify-build-flags:
+	$(call $(flag_action),CMAKE_SKIP_RPATH,ON,"Skip rpath")
+	$(call $(flag_action),CMAKE_VERBOSE_MAKEFILE,ON,"Verbose build")
+	$(call $(flag_action),CMAKE_C_FLAGS,"$(CFLAGS)","C flags")
+	$(call $(flag_action),CMAKE_CXX_FLAGS,"$(CXXFLAGS)","C++ flags")
+	$(call $(flag_action),CMAKE_SKIP_BOOTSTRAP_TEST,ON,"Skip BootstrapTest")
+ifeq (,$(filter pkg.cmake.bootstrap pkg.cmake.nogui,$(DEB_BUILD_PROFILES)))
+	$(call $(flag_action),BUILD_CursesDialog,ON,"Build curses GUI")
+	$(call $(flag_action),BUILD_QtDialog,ON,"Build Qt GUI")
+endif
+ifeq ($(DEB_HOST_ARCH_OS),hurd)
+	$(call $(flag_action),CMAKE_USE_LIBUV,0,"Do not use libuv")
+endif
+ifneq (,$(filter i386 hurd-i386,$(DEB_HOST_ARCH)))
+	$(call $(flag_action),CMake_TEST_NO_64BIT_TIME,ON,"Skip Timestamp2038 test")
+endif
+#	$(call $(flag_action),BUILD_DOCUMENTATION,ON)
+
+$(BUILD_FLAGS_FILE): flag_action := set_build_flag
+verify-build-flags: flag_action := verify_build_flag
+.PHONY: verify-build-flags
+
+BOOTSTRAP_FLAGS = --prefix=/usr --docdir=/share/doc/cmake --mandir=/share/man \
+                  --sphinx-man --sphinx-html --sphinx-flags="-D today=\"$(BUILD_DATE)\"" \
+                  --init=../$(BUILD_FLAGS_FILE) --verbose
+
+CROSS_CMAKE_FLAGS = -C../$(BUILD_FLAGS_FILE) \
+                    -DCMAKE_DOC_DIR=share/doc/cmake \
+                    -DCMAKE_MAN_DIR=share/man \
+                    -DSPHINX_HTML=ON -DSPHINX_MAN=ON \
+                    -DSPHINX_FLAGS="-D today=\"$(BUILD_DATE)\""
+
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+    NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+    BOOTSTRAP_FLAGS += --parallel=$(NUMJOBS)
+else
+    NUMJOBS = 1
+endif
+ifeq (,$(filter pkg.cmake.bootstrap,$(DEB_BUILD_PROFILES)))
+    BOOTSTRAP_FLAGS += --system-libs
+    CROSS_CMAKE_FLAGS += -DCMAKE_USE_SYSTEM_LIBRARIES=ON
+endif
+
+override_dh_auto_configure: $(BUILD_FLAGS_FILE)
+ifeq (,$(filter cross,$(DEB_BUILD_PROFILES)))
+	@echo 'blhc: ignore-line-regexp: .* (?:has|does not have) .*'
+	rm -rf Build && mkdir -p Build
+	cd Build && ../bootstrap $(BOOTSTRAP_FLAGS)
+else
+	dh_auto_configure --buildsystem=cmake --builddirectory=Build -- \
+		$(CROSS_CMAKE_FLAGS)
+endif
+
+EXCLUDED_TESTS = \
+	CTestTestUpload \
+	curl
+
+ifneq ($(filter i386 hurd-i386,$(DEB_HOST_ARCH)),)
+# The tutorial assumes SSE capabilites beyond the Debian i386 baseline, which makes the test fail
+EXCLUDED_TESTS += RunCMake.Tutorial
+endif
+ifeq ($(DEB_HOST_ARCH_BITS),32)
+# zstd compression has an issue on 32 bit architectures (cf. #1131441)
+EXCLUDED_TESTS += RunCMake.CommandLineTar
+endif
+
+space = $(eval) $(eval)
+concat_with = $(subst $(space),$1,$2)
+
+override_dh_auto_test:
+	echo "- 已在deepin v25的OBS环境跳过测试"
+
+execute_after_dh_auto_clean:
+	rm -f $(BUILD_FLAGS_FILE)
+	find . -name __pycache__ -type d -print0 | xargs -r0 rm -r
+
+override_dh_sphinxdoc:
+	dh_sphinxdoc -pcmake-doc
+
+%:
+	dh $@ --builddirectory=Build
+
+.PHONY: excluded-tests
+excluded-tests:
+	@echo $(call concat_with,\|,$(EXCLUDED_TESTS))
