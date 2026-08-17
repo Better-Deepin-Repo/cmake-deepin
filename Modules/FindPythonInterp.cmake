@@ -157,6 +157,7 @@ if(DEFINED PYTHONLIBS_VERSION_STRING)
 endif()
 # Search for the current active python version first
 list(APPEND _Python_VERSIONS ";")
+list(APPEND _Python_VERSIONS "3")
 list(APPEND _Python_VERSIONS ${_PYTHON_FIND_OTHER_VERSIONS})
 
 unset(_PYTHON_FIND_OTHER_VERSIONS)

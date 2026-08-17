@@ -7,7 +7,7 @@ Uploaders:
  Felix Geyer <fgeyer@debian.org>,
  Timo Röhling <roehling@debian.org>,
 Build-Depends:
- debhelper-compat (= 13),
+ debhelper-compat (= 14),
  cmake <cross>,
  git <!nocheck>,
  libarchive-dev (>= 3.3.3) <!pkg.cmake.bootstrap>,

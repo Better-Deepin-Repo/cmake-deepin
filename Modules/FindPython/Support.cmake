@@ -1155,7 +1155,7 @@ function (_PYTHON_VALIDATE_INTERPRETER)
 
     if (WIN32)
       # In this case, check if the interpreter is compatible with the target processor architecture
-      if (_$_PYTHON_PREFIX}_ARCHITECTURE_ID MATCHES "ARM")
+      if (_${_PYTHON_PREFIX}_ARCHITECTURE_ID MATCHES "ARM")
         set(target_arm TRUE)
       else()
         set(target_arm FALSE)
@@ -1683,12 +1683,7 @@ unset (${_PYTHON_PREFIX}_SOSABI)
 unset (${_PYTHON_PREFIX}_DEBUG_POSTFIX)
 
 # Define lookup strategy
-cmake_policy (GET CMP0094 _${_PYTHON_PREFIX}_LOOKUP_POLICY)
-if (_${_PYTHON_PREFIX}_LOOKUP_POLICY STREQUAL "NEW")
-  set (_${_PYTHON_PREFIX}_FIND_STRATEGY "LOCATION")
-else()
-  set (_${_PYTHON_PREFIX}_FIND_STRATEGY "VERSION")
-endif()
+set (_${_PYTHON_PREFIX}_FIND_STRATEGY "LOCATION")
 if (DEFINED ${_PYTHON_PREFIX}_FIND_STRATEGY)
   if (NOT ${_PYTHON_PREFIX}_FIND_STRATEGY MATCHES "^(VERSION|LOCATION)$")
     message (AUTHOR_WARNING "Find${_PYTHON_PREFIX}: ${${_PYTHON_PREFIX}_FIND_STRATEGY}: invalid value for '${_PYTHON_PREFIX}_FIND_STRATEGY'. 'VERSION' or 'LOCATION' expected.")
@@ -1931,7 +1926,7 @@ if (DEFINED ${_PYTHON_PREFIX}_FIND_UNVERSIONED_NAMES)
     set (_${_PYTHON_PREFIX}_FIND_UNVERSIONED_NAMES ${${_PYTHON_PREFIX}_FIND_UNVERSIONED_NAMES})
   endif()
 else()
-  set (_${_PYTHON_PREFIX}_FIND_UNVERSIONED_NAMES LAST)
+  set (_${_PYTHON_PREFIX}_FIND_UNVERSIONED_NAMES FIRST)
 endif()
 
 

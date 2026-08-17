@@ -14,7 +14,7 @@ Forwarded: not-needed
  2 files changed, 3 insertions(+), 7 deletions(-)
 
 diff --git a/Modules/FindPython/Support.cmake b/Modules/FindPython/Support.cmake
-index 6029be0..a8cf3db 100644
+index 455260c..fd52f6a 100644
 --- a/Modules/FindPython/Support.cmake
 +++ b/Modules/FindPython/Support.cmake
 @@ -1683,12 +1683,7 @@ unset (${_PYTHON_PREFIX}_SOSABI)

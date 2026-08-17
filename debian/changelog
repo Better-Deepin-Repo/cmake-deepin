@@ -1,3 +1,11 @@
+cmake (4.3.4-1) unstable; urgency=medium
+
+  * New upstream version 4.3.4
+  * Refresh patch (no functional changes)
+  * Migrate to debhelper 14
+
+ -- Timo Röhling <roehling@debian.org>  Mon, 22 Jun 2026 20:33:09 +0200
+
 cmake (4.3.3-1) unstable; urgency=medium
 
   * Use the uscan directory recursion to make old CMake releases

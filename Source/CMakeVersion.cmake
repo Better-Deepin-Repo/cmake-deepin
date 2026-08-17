@@ -1,7 +1,7 @@
 # CMake version number components.
 set(CMake_VERSION_MAJOR 4)
 set(CMake_VERSION_MINOR 3)
-set(CMake_VERSION_PATCH 3)
+set(CMake_VERSION_PATCH 4)
 #set(CMake_VERSION_RC 0)
 set(CMake_VERSION_IS_DIRTY 0)
 
@@ -21,7 +21,7 @@ endif()
 
 if(NOT CMake_VERSION_NO_GIT)
   # If this source was exported by 'git archive', use its commit info.
-  set(git_info [==[06cc1d04d8 CMake 4.3.3]==])
+  set(git_info [==[c2fd48014f CMake 4.3.4]==])
 
   # Otherwise, try to identify the current development source version.
   get_filename_component(git_toplevel "${CMAKE_CURRENT_LIST_DIR}" PATH)
